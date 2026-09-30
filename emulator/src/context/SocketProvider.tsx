@@ -18,7 +18,7 @@ interface SocketProviderProps {
     url?: string;
 }
 
-export const SocketProvider = ({ children, url = 'http://localhost:3001' }: SocketProviderProps) => {
+export const SocketProvider = ({ children, url = import.meta.env.VITE_BRIDGE_URL || 'http://localhost:5107' }: SocketProviderProps) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
 

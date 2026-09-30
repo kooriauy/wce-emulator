@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { ChatMessage } from '@/types/message';
 
-const STORAGE_KEY = 'wce_emulator_chats';
+export const useChatPersistence = (conversationKey: string = 'default') => {
+  const storageKey = `wce_emulator_chats_${conversationKey}`;
 
-export const useChatPersistence = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         return JSON.parse(saved, (key, value) => {
-            if (key === 'timestamp') return new Date(value);
-            return value;
+          if (key === 'timestamp') return new Date(value);
+          return value;
         });
       }
     } catch (error) {
@@ -21,13 +21,32 @@ export const useChatPersistence = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setMessages(JSON.parse(saved, (key, value) => {
+          if (key === 'timestamp') return new Date(value);
+          return value;
+        }));
+      } else {
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error("Failed to load chats:", error);
+      setMessages([]);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (messages.length > 0 || localStorage.getItem(storageKey)) {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+  }, [messages, storageKey]);
 
   const clearPersistence = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKey);
     setMessages([]);
-    toast.success("Chat history cleared");
+    toast.success("Chat history cleared for this channel");
   };
 
   return { messages, setMessages, clearPersistence };

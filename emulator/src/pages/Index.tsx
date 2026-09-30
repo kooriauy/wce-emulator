@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SocketProvider, useSocket } from "@/context/SocketProvider";
 import { ChatWindow } from "@/components/ChatWindow";
 import { DemoToolbar } from "@/components/DemoToolbar";
@@ -17,7 +17,33 @@ const Index = () => {
 
 const WhatsAppEmulator = () => {
   const { socket, isConnected } = useSocket();
-  const { messages, setMessages, clearPersistence } = useChatPersistence();
+  const [targetTo, setTargetTo] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("to") || params.get("phoneNumberId") || params.get("channelId") || "";
+    }
+    return "";
+  });
+  const [senderFrom, setSenderFrom] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("from") || params.get("sender") || "1234567890";
+    }
+    return "1234567890";
+  });
+
+  const conversationKey = targetTo ? `${targetTo}_${senderFrom}` : "default";
+  const { messages, setMessages, clearPersistence } = useChatPersistence(conversationKey);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const to = params.get("to") || params.get("phoneNumberId") || params.get("channelId") || "";
+      const from = params.get("from") || params.get("sender") || "1234567890";
+      if (to && to !== targetTo) setTargetTo(to);
+      if (from && from !== senderFrom) setSenderFrom(from);
+    }
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -134,9 +160,14 @@ const WhatsAppEmulator = () => {
       );
     }
 
-    // Send to bridge
+    // Send to bridge with dynamic parameters
     if (socket) {
-      socket.emit("ui_reply", reply);
+      socket.emit("ui_reply", {
+        ...reply,
+        from: senderFrom,
+        phoneNumberId: targetTo || undefined,
+        channelId: targetTo || undefined
+      });
     } else {
       toast.error("Not connected to bridge server");
     }
@@ -158,7 +189,9 @@ const WhatsAppEmulator = () => {
       <div className="w-full max-w-md h-[700px] shadow-2xl rounded-2xl overflow-hidden flex flex-col bg-card border">
         {/* Connection Status Badge */}
         <div className="px-4 py-2 bg-muted/50 flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">WhatsApp UI Emulator</span>
+          <span className="text-muted-foreground font-mono">
+            {targetTo ? `Target: ${targetTo}` : 'WhatsApp UI Emulator'}
+          </span>
           <Badge
             variant={isConnected ? "default" : "secondary"}
             className="text-xs"
@@ -169,7 +202,7 @@ const WhatsAppEmulator = () => {
 
         {/* Chat Window */}
         <div className="flex-1 overflow-hidden">
-          <ChatWindow messages={messages} onReply={handleReply} />
+          <ChatWindow messages={messages} onReply={handleReply} targetTo={targetTo} senderFrom={senderFrom} />
         </div>
 
         {/* Demo Toolbar */}

@@ -8,7 +8,7 @@ const { parseWhatsAppPayload } = require("./utils/payloadParser");
 const { constructWebhookPayload } = require("./utils/webhookConstructor");
 
 
-const PORT = 3001;
+const PORT = process.env.PORT || 5107;
 
 // TODO: Change this to your bot's webhook URL
 const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || "http://localhost:8000/chatbot/webhook";
@@ -68,8 +68,9 @@ io.on("connection", (socket) => {
         JSON.stringify(fullWebhookPayload, null, 2)
       );
 
-      const response = await axios.post(BOT_WEBHOOK_URL, fullWebhookPayload);
-      console.log("📤 Sent to bot webhook. Response:", response.status);
+      const targetUrl = simpleReply.webhookUrl || simpleReply.botWebhookUrl || BOT_WEBHOOK_URL;
+      const response = await axios.post(targetUrl, fullWebhookPayload);
+      console.log(`📤 Sent to bot webhook (${targetUrl}). Response:`, response.status);
     } catch (error) {
       console.error("❌ Error sending to bot:", error.message);
     }

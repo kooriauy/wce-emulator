@@ -14,9 +14,11 @@ import {
 interface ChatWindowProps {
   messages: ChatMessage[];
   onReply: (reply: UIReply) => void;
+  targetTo?: string;
+  senderFrom?: string;
 }
 
-export const ChatWindow = ({ messages, onReply }: ChatWindowProps) => {
+export const ChatWindow = ({ messages, onReply, targetTo, senderFrom }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -89,11 +91,11 @@ export const ChatWindow = ({ messages, onReply }: ChatWindowProps) => {
       <div className="bg-chat-header text-white px-4 py-3 shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-semibold">
-            AI
+            💬
           </div>
-          <div>
-            <h2 className="font-semibold">Chatbot Emulator</h2>
-            <p className="text-xs opacity-90">WhatsApp UI</p>
+          <div className="flex-1 overflow-hidden">
+            <h2 className="font-semibold truncate">{targetTo ? `To: ${targetTo}` : 'WhatsApp Emulator'}</h2>
+            <p className="text-xs opacity-90 truncate">{senderFrom ? `From: ${senderFrom}` : 'WhatsApp UI'}</p>
           </div>
         </div>
       </div>

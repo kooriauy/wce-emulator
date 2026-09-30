@@ -4,7 +4,9 @@
 function constructWebhookPayload(simpleReply) {
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const messageId = `wamid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  const from = "1234567890";
+  const from = simpleReply.from || simpleReply.senderNumber || process.env.DEFAULT_SENDER_NUMBER || "1234567890";
+  const phoneNumberId = simpleReply.phoneNumberId || simpleReply.channelId || process.env.DEFAULT_PHONE_NUMBER_ID || "PHONE_NUMBER_ID";
+  const userName = simpleReply.userName || simpleReply.profileName || "User 🤖";
 
   const baseWebhook = {
     object: "whatsapp_business_account",
@@ -17,12 +19,12 @@ function constructWebhookPayload(simpleReply) {
               messaging_product: "whatsapp",
               metadata: {
                 display_phone_number: from,
-                phone_number_id: "PHONE_NUMBER_ID",
+                phone_number_id: phoneNumberId,
               },
               contacts: [
                 {
                   profile: {
-                    name: "User 🤖",
+                    name: userName,
                   },
                   wa_id: from,
                 },
