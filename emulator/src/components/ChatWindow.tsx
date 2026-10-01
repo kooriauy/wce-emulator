@@ -16,11 +16,18 @@ interface ChatWindowProps {
   onReply: (reply: UIReply) => void;
   targetTo?: string;
   senderFrom?: string;
+  initialMessage?: string;
 }
 
-export const ChatWindow = ({ messages, onReply, targetTo, senderFrom }: ChatWindowProps) => {
+export const ChatWindow = ({ messages, onReply, targetTo, senderFrom, initialMessage }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(initialMessage || '');
+
+  useEffect(() => {
+    if (initialMessage) {
+      setInputValue(initialMessage);
+    }
+  }, [initialMessage]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

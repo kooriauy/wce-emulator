@@ -31,6 +31,13 @@ const WhatsAppEmulator = () => {
     }
     return "1234567890";
   });
+  const [initialMessage, setInitialMessage] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("message") || params.get("text") || params.get("body") || "";
+    }
+    return "";
+  });
 
   const conversationKey = targetTo ? `${targetTo}_${senderFrom}` : "default";
   const { messages, setMessages, clearPersistence } = useChatPersistence(conversationKey);
@@ -40,8 +47,10 @@ const WhatsAppEmulator = () => {
       const params = new URLSearchParams(window.location.search);
       const to = params.get("to") || params.get("phoneNumberId") || params.get("channelId") || "";
       const from = params.get("from") || params.get("sender") || "1234567890";
+      const msg = params.get("message") || params.get("text") || params.get("body") || "";
       if (to && to !== targetTo) setTargetTo(to);
       if (from && from !== senderFrom) setSenderFrom(from);
+      if (msg && msg !== initialMessage) setInitialMessage(msg);
     }
   }, []);
 
@@ -202,7 +211,7 @@ const WhatsAppEmulator = () => {
 
         {/* Chat Window */}
         <div className="flex-1 overflow-hidden">
-          <ChatWindow messages={messages} onReply={handleReply} targetTo={targetTo} senderFrom={senderFrom} />
+          <ChatWindow messages={messages} onReply={handleReply} targetTo={targetTo} senderFrom={senderFrom} initialMessage={initialMessage} />
         </div>
 
         {/* Demo Toolbar */}
